@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+
+    <style type="text/css">
+        .page {
+            max-width: 1024px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .picker {
+            width: 100%;
+            height: 4em;
+            margin-bottom: 2em;
+            display: flex;
+        }
+
+        .picker-item {
+            width: 10em;
+            height: 4em;
+            margin-right: 2em;
+        }
+
+        .picker-item-red {
+            background-color: red;
+        }
+
+        .picker-item-green {
+            background-color: green;
+        }
+
+        .picker-item-blue {
+            background-color: blue;
+        }
+
+        .picker-item-teal {
+            background-color: teal;
+        }
+
+        .picker-output {
+            width: 50%;
+            height: 6em;
+            margin-bottom: 2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="picker">
+            <div class="picker-item picker-item-red" data-value="">
+            </div>
+            <div class="picker-item picker-item-green" data-value="">
+            </div>
+            <div class="picker-item picker-item-blue" data-value="">
+            </div>
+            <div class="picker-item picker-item-teal" data-value="">
+            </div>
+        </div>
+        <div id="output" class="picker-output">
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        document.onreadystatechange = function () {
+            if (document.readyState === "complete") {
+                var app = colorPickerApp();
+                app.initApp();
+            }
+        }
+
+        // App
+        function colorPickerApp() {
+            var PERCENTAGE = .1; // 10%
+            var DATA_VALUE = 'data-value';
+            var PICKER_ITEM = 'picker-item';
+
+            function initApp() {
+                // Init picker items
+                var picker = document.getElementsByClassName(PICKER_ITEM);
+                for (var index = 0; index < picker.length; index++) {
+                    // Attach click event handler
+                    picker[index].addEventListener('click', handlePickerItemClick);
+
+                    // Initialize RGB attribute
+                    var rgb = {
+                        red: 0,
+                        green: 0,
+                        blue: 0
+                    };
+                    picker[index].setAttribute(DATA_VALUE, JSON.stringify(rgb));
+                }
+            }
+
+            // Adjust output element color based on current selection
+            function handlePickerItemClick(target) {
+                var currentPicker = this;
+                
+
+                // Calculate picker item RGB percentage
+                var selectedColor = getBackgroundColor(currentPicker);
+                var rgb = parseRGB(selectedColor);
+                var rgbPercentage = calculateRGBPercentage(rgb, PERCENTAGE);
+
+                // Add new percentage value with previous
+                var oldValue = JSON.parse(currentPicker.getAttribute(DATA_VALUE));
+                var newValue = addRGB(rgbPercentage, oldValue);
+                currentPicker.setAttribute(DATA_VALUE, JSON.stringify(newValue));
+
+                // Calculate output element RBG value
+                var newRGB = {
+                    red: 0,
+                    green: 0,
+                    blue: 0
+                };
+                var picker = document.getElementsByClassName(PICKER_ITEM);
+                for (var index = 0; index < picker.length; index++) {
+                    newRGB = addRGB(newRGB, JSON.parse(picker[index].getAttribute(DATA_VALUE)));
+                }
+
+                var output = document.getElementById('output');
+                output.style.backgroundColor = 'rgb(' + newRGB.red + ',' + newRGB.green + ',' + newRGB.blue + ')';
+            }
+
+            function getBackgroundColor(element) {
+                if (element.currentStyle)
+                    return element.currentStyle.backgroundColor;
+                if (window.getComputedStyle) {
+                    var elementStyle = window.getComputedStyle(element, "");
+                    if (elementStyle)
+                        return elementStyle.getPropertyValue("background-color");
+                }
+                // Return 0 if both methods failed.
+                return 0;
+            }
+
+            function parseRGB(str) {
+                var match = str.match(/rgba?\((\d{1,3}), ?(\d{1,3}), ?(\d{1,3})\)?(?:, ?(\d(?:\.\d?))\))?/);
+                return match ? {
+                    red: match[1],
+                    green: match[2],
+                    blue: match[3]
+                } : {};
+            }
+
+            function calculateRGBPercentage(rgb, percentage) {
+                rgb.red = +(rgb.red * percentage).toFixed();
+                rgb.green = +(rgb.green * percentage).toFixed();
+                rgb.blue = +(rgb.blue * percentage).toFixed();
+
+                return rgb;
+            }
+
+            function addRGB(rgbOp1, rgbOp2) {
+                var rgb = {
+                    red: rgbOp1.red + rgbOp2.red,
+                    green: rgbOp1.green + rgbOp2.green,
+                    blue: rgbOp1.blue + rgbOp2.blue
+                };
+
+                return (rgb);
+            }
+
+            var publicAPI = {
+                initApp: initApp
+            };
+
+            return (publicAPI);            
+        };
+    </script>
+</body>
+</html>
+
